@@ -63,7 +63,9 @@
   var xpItems = Array.prototype.slice.call(document.querySelectorAll(".xp__item"));
   var xpPanels = Array.prototype.slice.call(document.querySelectorAll(".xp__panel"));
 
-  function selectXp(index) {
+  var stacked = window.matchMedia("(max-width: 1080px)");
+
+  function selectXp(index, reveal) {
     xpItems.forEach(function (item, i) {
       item.setAttribute("aria-selected", i === index ? "true" : "false");
       item.setAttribute("tabindex", i === index ? "0" : "-1");
@@ -71,11 +73,15 @@
     xpPanels.forEach(function (panel, i) {
       panel.hidden = i !== index;
     });
+    // stacked layout puts the panel below a tall list — scroll it into view
+    if (reveal && stacked.matches && xpPanels[index]) {
+      xpPanels[index].scrollIntoView({ behavior: "smooth", block: "center" });
+    }
   }
 
   if (xpItems.length) {
     xpItems.forEach(function (item, i) {
-      item.addEventListener("click", function () { selectXp(i); });
+      item.addEventListener("click", function () { selectXp(i, true); });
       item.addEventListener("keydown", function (e) {
         var next = null;
         if (e.key === "ArrowDown" || e.key === "ArrowRight") next = (i + 1) % xpItems.length;
