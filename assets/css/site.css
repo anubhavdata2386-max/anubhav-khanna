@@ -636,7 +636,30 @@ a.chip:hover { border-color: var(--accent-line); color: var(--ink); }
 .tmz:hover { border-color: var(--accent-line); }
 .tmz__mark { color: var(--accent-line); margin-bottom: 18px; }
 .tmz__mark svg { width: 30px; height: 30px; }
-.tmz__quote { margin: 0; color: var(--ink-2); font-size: .9375rem; line-height: 1.7; }
+.tmz__quote {
+  margin: 0; color: var(--ink-2); font-size: .9375rem; line-height: 1.7;
+  /* clamp so wildly different quote lengths don't make ragged, cavernous cards */
+  display: -webkit-box;
+  -webkit-line-clamp: 8;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.tmz.is-expanded .tmz__quote {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+.tmz__more {
+  display: none;
+  margin-top: 14px;
+  align-self: flex-start;
+  padding: 0;
+  color: var(--accent-soft);
+  font-size: .8125rem; font-weight: 600;
+  transition: color .2s var(--ease);
+}
+.tmz__more.is-needed { display: inline-block; }
+.tmz__more:hover { color: var(--ink); }
 .tmz__person {
   margin-top: auto;
   padding-top: 22px;

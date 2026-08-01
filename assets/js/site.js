@@ -149,3 +149,38 @@
       + "&body=" + encodeURIComponent(body);
   });
 })();
+
+/* ============================================================
+   Testimonials — reveal the expand toggle only where the quote
+   is actually clipped, so short cards stay clean.
+   ============================================================ */
+(function () {
+  "use strict";
+  var cards = Array.prototype.slice.call(document.querySelectorAll(".tmz"));
+  if (!cards.length) return;
+
+  function sync() {
+    cards.forEach(function (card) {
+      var quote = card.querySelector(".tmz__quote");
+      var btn = card.querySelector(".tmz__more");
+      if (!quote || !btn || card.classList.contains("is-expanded")) return;
+      btn.classList.toggle("is-needed", quote.scrollHeight - quote.clientHeight > 4);
+    });
+  }
+
+  cards.forEach(function (card) {
+    var btn = card.querySelector(".tmz__more");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var open = card.classList.toggle("is-expanded");
+      btn.textContent = open ? "Show less" : "Read more";
+    });
+  });
+
+  sync();
+  window.addEventListener("load", sync);
+  var t;
+  window.addEventListener("resize", function () {
+    clearTimeout(t); t = setTimeout(sync, 150);
+  });
+})();
