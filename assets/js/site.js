@@ -184,3 +184,106 @@
     clearTimeout(t); t = setTimeout(sync, 150);
   });
 })();
+
+/* ============================================================
+   Layer 1 — depth and motion
+   Progressive enhancement: no JS, no effects, site works fine.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+  /* ---------- cursor spotlight + 3D tilt ---------- */
+  if (fine && !reduced) {
+    var SEL = ".stat, .skillcard, .ach, .tmz, .brand, .cert, .cc, .metric," +
+              " .channel, .tl, .tile, .proudof";
+    var cards = Array.prototype.slice.call(document.querySelectorAll(SEL));
+
+    cards.forEach(function (card) {
+      card.classList.add("fx");
+      var raf = null, rect = null;
+
+      card.addEventListener("mouseenter", function () { rect = card.getBoundingClientRect(); });
+
+      card.addEventListener("mousemove", function (e) {
+        if (raf) return;
+        raf = requestAnimationFrame(function () {
+          raf = null;
+          if (!rect) rect = card.getBoundingClientRect();
+          var x = e.clientX - rect.left;
+          var y = e.clientY - rect.top;
+          card.style.setProperty("--mx", x + "px");
+          card.style.setProperty("--my", y + "px");
+          // bigger cards get less tilt, so the effect reads the same at any size
+          var amp = rect.width > 520 ? 3.5 : 6.5;
+          var rx = ((y / rect.height) - 0.5) * -amp;
+          var ry = ((x / rect.width) - 0.5) * amp;
+          card.style.transform = "perspective(1100px) rotateX(" + rx.toFixed(2) +
+                                 "deg) rotateY(" + ry.toFixed(2) + "deg) translateY(-4px)";
+        });
+      });
+
+      card.addEventListener("mouseleave", function () {
+        rect = null;
+        card.style.transform = "";
+      });
+    });
+
+    /* ---------- magnetic primary buttons ---------- */
+    Array.prototype.slice.call(document.querySelectorAll(".btn--primary")).forEach(function (btn) {
+      var r = null;
+      btn.addEventListener("mouseenter", function () { r = btn.getBoundingClientRect(); });
+      btn.addEventListener("mousemove", function (e) {
+        if (!r) r = btn.getBoundingClientRect();
+        var x = (e.clientX - r.left - r.width / 2) * 0.22;
+        var y = (e.clientY - r.top - r.height / 2) * 0.35;
+        btn.style.transform = "translate(" + x.toFixed(1) + "px," + y.toFixed(1) + "px)";
+      });
+      btn.addEventListener("mouseleave", function () {
+        r = null;
+        btn.style.transform = "";
+      });
+    });
+  }
+
+  /* ---------- stat numbers count up when they scroll into view ---------- */
+  var nums = Array.prototype.slice.call(document.querySelectorAll(".stat__num, .metric__val"));
+  if (!nums.length) return;
+
+  if (reduced || !("IntersectionObserver" in window)) return;
+
+  function run(el) {
+    // split "$300M+" into prefix "$", value 300, suffix "M+"
+    var m = /^(\D*?)(\d+(?:\.\d+)?)(.*)$/.exec(el.textContent.trim());
+    if (!m) return;
+    var pre = m[1], target = parseFloat(m[2]), suf = m[3];
+    var decimals = (m[2].split(".")[1] || "").length;
+    if (target <= 1) return;
+    var start = null, dur = 1200;
+
+    el.style.minWidth = el.getBoundingClientRect().width + "px";
+
+    function frame(ts) {
+      if (!start) start = ts;
+      var p = Math.min((ts - start) / dur, 1);
+      var eased = 1 - Math.pow(1 - p, 3);
+      var v = target * eased;
+      el.textContent = pre + (decimals ? v.toFixed(decimals) : Math.round(v)) + suf;
+      if (p < 1) requestAnimationFrame(frame);
+      else el.style.minWidth = "";
+    }
+    requestAnimationFrame(frame);
+  }
+
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      run(entry.target);
+      io.unobserve(entry.target);
+    });
+  }, { threshold: 0.4 });
+
+  nums.forEach(function (el) { io.observe(el); });
+})();

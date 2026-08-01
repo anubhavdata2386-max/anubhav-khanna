@@ -1163,3 +1163,106 @@ article.tile .tile__foot { border-top-color: var(--border); }
   opacity: 1;
 }
 .tile:hover .tile__img--logo img { transform: none; opacity: 1; }
+
+/* ============================================================
+   Layer 1 — depth and motion
+   GPU-composited only. Hover effects are gated to fine pointers,
+   everything is gated to prefers-reduced-motion: no-preference.
+   ============================================================ */
+
+/* --- perspective containers, so tilt has somewhere to tilt in --- */
+.stats__grid, .skills__grid, .ach__grid, .tmz__grid, .brands__grid,
+.metrics, .tiles, .contact__cards, .certs, .channels, .timeline {
+  perspective: 1100px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .fx {
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform .3s var(--ease), border-color .3s var(--ease);
+    will-change: transform;
+  }
+  /* cursor-tracked spotlight */
+  .fx::after {
+    content: "";
+    position: absolute; inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .35s var(--ease);
+    border-radius: inherit;
+    background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%),
+                var(--fx-tint, rgba(239, 68, 68, .13)), transparent 62%);
+  }
+  .fx:hover::after { opacity: 1; }
+  .fx:hover { border-color: var(--accent-line); }
+
+  /* campaign pages tint to the campaign's own colour */
+  .camp .fx { --fx-tint: color-mix(in srgb, var(--camp) 16%, transparent); }
+  .camp .fx:hover { border-color: var(--camp-line); }
+
+  /* magnetic buttons */
+  .btn--primary { will-change: transform; }
+}
+
+/* --- hero entrance: staggered rise --- */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes fx-rise {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .hero__inner > * { animation: fx-rise .85s var(--ease) both; }
+  .hero__inner > *:nth-child(1) { animation-delay: .04s; }
+  .hero__inner > *:nth-child(2) { animation-delay: .12s; }
+  .hero__inner > *:nth-child(3) { animation-delay: .26s; }
+  .hero__inner > *:nth-child(4) { animation-delay: .34s; }
+  .hero__inner > *:nth-child(5) { animation-delay: .42s; }
+  .hero__inner > *:nth-child(6) { animation-delay: .50s; }
+  .hero__title span { animation: fx-rise .95s var(--ease) both; animation-delay: .2s; }
+  .hero__scroll { animation: fx-rise 1s var(--ease) both; animation-delay: .8s; }
+
+  /* --- aurora: two slow-drifting fields, no blur filter --- */
+  .hero__glow::before, .hero__glow::after {
+    content: "";
+    position: absolute;
+    width: 70vw; height: 70vw;
+    max-width: 900px; max-height: 900px;
+    border-radius: 50%;
+    will-change: transform;
+  }
+  .hero__glow::before {
+    top: -18%; left: 8%;
+    background: radial-gradient(circle, rgba(239, 68, 68, .16), transparent 62%);
+    animation: fx-drift-a 34s ease-in-out infinite;
+  }
+  .hero__glow::after {
+    bottom: -22%; right: 4%;
+    background: radial-gradient(circle, rgba(251, 146, 60, .10), transparent 62%);
+    animation: fx-drift-b 44s ease-in-out infinite;
+  }
+  [data-theme="light"] .hero__glow::before { background: radial-gradient(circle, rgba(220, 38, 38, .10), transparent 62%); }
+  [data-theme="light"] .hero__glow::after  { background: radial-gradient(circle, rgba(234, 115, 23, .07), transparent 62%); }
+  @keyframes fx-drift-a {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50%      { transform: translate3d(6%, 8%, 0) scale(1.12); }
+  }
+  @keyframes fx-drift-b {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1.05); }
+    50%      { transform: translate3d(-8%, -6%, 0) scale(.92); }
+  }
+
+  /* --- hero recedes as you scroll past it (native scroll timeline) --- */
+  @supports (animation-timeline: scroll()) {
+    .hero__inner {
+      animation: fx-hero-out linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 78vh;
+    }
+    @keyframes fx-hero-out {
+      to { opacity: .12; transform: translateY(-44px) scale(.975); }
+    }
+  }
+}
+
+/* counting numbers must not reflow the card as digits change */
+.stat__num { font-variant-numeric: tabular-nums; }
