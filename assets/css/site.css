@@ -355,8 +355,11 @@ a.chip:hover { border-color: var(--accent-line); color: var(--ink); }
 .stats__grid {
   margin-top: 56px;
   display: grid; gap: 16px;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(12, 1fr);
 }
+/* seven cards: four on top, three below — no orphan */
+.stat { grid-column: span 3; }
+.stat:nth-child(n+5) { grid-column: span 4; }
 .stat {
   padding: 28px 20px;
   border-radius: var(--r-lg);
@@ -1031,7 +1034,9 @@ select.input { appearance: none; cursor: pointer;
    Responsive
    ============================================================ */
 @media (max-width: 1080px) {
-  .stats__grid { grid-template-columns: repeat(3, 1fr); }
+  .stats__grid { grid-template-columns: repeat(6, 1fr); }
+  .stat, .stat:nth-child(n+5) { grid-column: span 2; }
+  .stat:last-child { grid-column: 3 / span 2; }
   .skills__grid, .ach__grid, .tmz__grid { grid-template-columns: repeat(2, 1fr); }
   .tmz__quote { font-size: .9375rem; }
   .brands__grid { grid-template-columns: repeat(3, 1fr); }
@@ -1064,7 +1069,9 @@ select.input { appearance: none; cursor: pointer;
 
 @media (max-width: 640px) {
   .shell { padding-inline: 18px; }
-  .stats__grid { grid-template-columns: repeat(2, 1fr); }
+  .stats__grid { grid-template-columns: repeat(4, 1fr); }
+  .stat, .stat:nth-child(n+5) { grid-column: span 2; }
+  .stat:last-child { grid-column: 2 / span 2; }
   .skills__grid, .ach__grid, .tmz__grid { grid-template-columns: 1fr; }
   .brands__grid { grid-template-columns: repeat(2, 1fr); }
   .metrics { grid-template-columns: 1fr 1fr; }
