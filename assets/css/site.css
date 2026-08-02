@@ -798,6 +798,15 @@ select.input { appearance: none; cursor: pointer;
   padding-right: 38px;
 }
 .form .btn { margin-top: 22px; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.form__status {
+  margin: 14px 0 0; text-align: center;
+  font-size: .875rem; min-height: 1.2em;
+}
+.form__status.is-busy { color: var(--ink-3); }
+.form__status.is-ok   { color: #4ade80; }
+.form__status.is-err  { color: var(--accent-soft); }
+[data-theme="light"] .form__status.is-ok { color: #16a34a; }
 .form__note { margin: 14px 0 0; color: var(--ink-4); font-size: .8125rem; text-align: center; }
 
 /* ---------- footer ---------- */

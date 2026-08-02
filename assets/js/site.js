@@ -118,70 +118,116 @@
 })();
 
 /* ============================================================
-   Contact form — composes an email. No server, no third party.
+   Contact form — saves to Supabase, falls back to email.
+   Keys live in assets/js/config.js
    ============================================================ */
 (function () {
   "use strict";
   var form = document.getElementById("contact-form");
   if (!form) return;
 
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    var data = new FormData(form);
-    var name = (data.get("name") || "").trim();
-    var email = (data.get("email") || "").trim();
-    var company = (data.get("company") || "").trim();
-    var type = (data.get("inquiry") || "").trim();
-    var message = (data.get("message") || "").trim();
+  var cfg = window.SITE_CONFIG || {};
+  var TO = cfg.CONTACT_EMAIL || "anubhav2386@gmail.com";
+  var configured = cfg.SUPABASE_URL &&
+                   cfg.SUPABASE_URL.indexOf("YOUR-PROJECT-REF") === -1 &&
+                   cfg.SUPABASE_ANON_KEY &&
+                   cfg.SUPABASE_ANON_KEY.indexOf("YOUR-ANON") === -1;
 
-    var subject = type ? type + " enquiry from " + name : "Website enquiry from " + name;
-    var body = [
-      "Name: " + name,
-      "Email: " + email,
-      company ? "Company: " + company : null,
-      type ? "Inquiry type: " + type : null,
-      "",
-      message
-    ].filter(Boolean).join("\n");
+  var btn = form.querySelector('button[type="submit"]');
+  var status = document.getElementById("form-status");
+  var btnLabel = btn ? btn.innerHTML : "";
 
-    window.location.href = "mailto:anubhav2386@gmail.com"
-      + "?subject=" + encodeURIComponent(subject)
-      + "&body=" + encodeURIComponent(body);
-  });
-})();
-
-/* ============================================================
-   Testimonials — reveal the expand toggle only where the quote
-   is actually clipped, so short cards stay clean.
-   ============================================================ */
-(function () {
-  "use strict";
-  var cards = Array.prototype.slice.call(document.querySelectorAll(".tmz"));
-  if (!cards.length) return;
-
-  function sync() {
-    cards.forEach(function (card) {
-      var quote = card.querySelector(".tmz__quote");
-      var btn = card.querySelector(".tmz__more");
-      if (!quote || !btn || card.classList.contains("is-expanded")) return;
-      btn.classList.toggle("is-needed", quote.scrollHeight - quote.clientHeight > 4);
-    });
+  function say(kind, msg) {
+    if (!status) return;
+    status.className = "form__status is-" + kind;
+    status.textContent = msg;
   }
 
-  cards.forEach(function (card) {
-    var btn = card.querySelector(".tmz__more");
-    if (!btn) return;
-    btn.addEventListener("click", function () {
-      var open = card.classList.toggle("is-expanded");
-      btn.textContent = open ? "Show less" : "Read more";
-    });
-  });
+  function mailtoFallback(d) {
+    var subject = d.inquiry ? d.inquiry + " enquiry from " + d.name
+                            : "Website enquiry from " + d.name;
+    var body = [
+      "Name: " + d.name,
+      "Email: " + d.email,
+      d.company ? "Company: " + d.company : null,
+      d.inquiry ? "Inquiry type: " + d.inquiry : null,
+      "",
+      d.message
+    ].filter(Boolean).join("\n");
+    window.location.href = "mailto:" + TO +
+      "?subject=" + encodeURIComponent(subject) +
+      "&body=" + encodeURIComponent(body);
+  }
 
-  sync();
-  window.addEventListener("load", sync);
-  var t;
-  window.addEventListener("resize", function () {
-    clearTimeout(t); t = setTimeout(sync, 150);
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var fd = new FormData(form);
+
+    // honeypot: real people never fill this, bots almost always do
+    if ((fd.get("website") || "").trim() !== "") {
+      say("ok", "Thanks — your message has been sent.");
+      form.reset();
+      return;
+    }
+
+    var d = {
+      name: (fd.get("name") || "").trim(),
+      email: (fd.get("email") || "").trim(),
+      company: (fd.get("company") || "").trim(),
+      inquiry: (fd.get("inquiry") || "").trim(),
+      message: (fd.get("message") || "").trim()
+    };
+
+    if (!d.name || !d.email || !d.message) {
+      say("err", "Please fill in your name, email and message.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email)) {
+      say("err", "That email address doesn't look right.");
+      return;
+    }
+
+    if (!configured) { mailtoFallback(d); return; }
+
+    if (btn) { btn.disabled = true; btn.textContent = "Sending\u2026"; }
+    say("busy", "Sending\u2026");
+
+    var ctrl = new AbortController();
+    var timeout = setTimeout(function () { ctrl.abort(); }, 12000);
+
+    fetch(cfg.SUPABASE_URL.replace(/\/+$/, "") + "/rest/v1/contact_messages", {
+      method: "POST",
+      signal: ctrl.signal,
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": cfg.SUPABASE_ANON_KEY,
+        "Authorization": "Bearer " + cfg.SUPABASE_ANON_KEY,
+        "Prefer": "return=minimal"
+      },
+      body: JSON.stringify({
+        name: d.name,
+        email: d.email,
+        company: d.company || null,
+        inquiry_type: d.inquiry || null,
+        message: d.message,
+        source_page: location.pathname,
+        user_agent: navigator.userAgent.slice(0, 300)
+      })
+    })
+    .then(function (res) {
+      clearTimeout(timeout);
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      form.reset();
+      say("ok", "Thanks \u2014 your message is with me. I'll reply to " + d.email + " shortly.");
+      if (btn) { btn.innerHTML = btnLabel; btn.disabled = false; }
+    })
+    .catch(function () {
+      clearTimeout(timeout);
+      // paused project, offline, blocked request — do not lose the lead
+      if (btn) { btn.innerHTML = btnLabel; btn.disabled = false; }
+      say("err", "Couldn't send that automatically \u2014 opening your email app instead.");
+      mailtoFallback(d);
+    });
   });
 })();
 

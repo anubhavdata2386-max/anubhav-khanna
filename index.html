@@ -805,10 +805,15 @@
             <textarea class="input" id="f-msg" name="message" placeholder="Tell me about your project or opportunity&hellip;" required></textarea>
           </div>
         </div>
+        <div class="hp" aria-hidden="true">
+          <label for="f-website">Leave this field empty</label>
+          <input id="f-website" name="website" type="text" tabindex="-1" autocomplete="off">
+        </div>
         <button class="btn btn--primary btn--lg btn--block" type="submit">
           <svg aria-hidden="true"><use href="#ic-send"></use></svg>Send Message
         </button>
-        <p class="form__note">Opens in your email app so you keep a copy of what you sent.</p>
+        <p class="form__status" id="form-status" role="status" aria-live="polite"></p>
+        <p class="form__note">Straight to my inbox. I usually reply within a day.</p>
       </form>
     </div>
   </div>
@@ -830,6 +835,7 @@
 </footer>
 
 <script>document.getElementById("yr").textContent = new Date().getFullYear();</script>
+<script src="assets/js/config.js" defer></script>
 <script src="assets/js/site.js" defer></script>
 </body>
 </html>
