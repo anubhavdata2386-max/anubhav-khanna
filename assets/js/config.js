@@ -18,5 +18,9 @@
 window.SITE_CONFIG = {
   SUPABASE_URL: "https://avsaehvdzgbmqsdsvvsa.supabase.co",
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2c2FlaHZkemdibXFzZHN2dnNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MDI1OTksImV4cCI6MjA5NzE3ODU5OX0.iSJ78rpDVRJ4gcqtNqldS0fYhIMsdUb5rytf1mpXa54",
-  CONTACT_EMAIL: "anubhav2386@gmail.com"
+  CONTACT_EMAIL: "anubhav2386@gmail.com",
+
+  /* Web3Forms — emails you the moment someone submits.
+     Public by design; it can only send mail to the address you verified. */
+  WEB3FORMS_KEY: "bdbabc00-43e6-431c-b85e-5030d629ab74"
 };

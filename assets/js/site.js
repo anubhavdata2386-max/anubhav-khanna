@@ -187,46 +187,92 @@
       return;
     }
 
-    if (!configured) { mailtoFallback(d); return; }
+    var w3key = cfg.WEB3FORMS_KEY && cfg.WEB3FORMS_KEY.indexOf("YOUR-") === -1
+                  ? cfg.WEB3FORMS_KEY : null;
+
+    if (!configured && !w3key) { mailtoFallback(d); return; }
 
     if (btn) { btn.disabled = true; btn.textContent = "Sending\u2026"; }
     say("busy", "Sending\u2026");
 
-    var ctrl = new AbortController();
-    var timeout = setTimeout(function () { ctrl.abort(); }, 12000);
+    function withTimeout(promise, ms) {
+      var ctrl = new AbortController();
+      var timer = setTimeout(function () { ctrl.abort(); }, ms);
+      return { signal: ctrl.signal, done: function () { clearTimeout(timer); } };
+    }
 
-    fetch(cfg.SUPABASE_URL.replace(/\/+$/, "") + "/rest/v1/contact_messages", {
-      method: "POST",
-      signal: ctrl.signal,
-      headers: {
-        "Content-Type": "application/json",
-        "apikey": cfg.SUPABASE_ANON_KEY,
-        "Authorization": "Bearer " + cfg.SUPABASE_ANON_KEY,
-        "Prefer": "return=minimal"
-      },
-      body: JSON.stringify({
-        name: d.name,
-        email: d.email,
-        company: d.company || null,
-        inquiry_type: d.inquiry || null,
-        message: d.message,
-        source_page: location.pathname,
-        user_agent: navigator.userAgent.slice(0, 300)
-      })
-    })
-    .then(function (res) {
-      clearTimeout(timeout);
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      form.reset();
-      say("ok", "Thanks \u2014 your message is with me. I'll reply to " + d.email + " shortly.");
+    var jobs = [];
+
+    /* 1 — store it in your own database */
+    if (configured) {
+      var a = withTimeout(null, 12000);
+      jobs.push(
+        fetch(cfg.SUPABASE_URL.replace(/\/+$/, "") + "/rest/v1/contact_messages", {
+          method: "POST",
+          signal: a.signal,
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": cfg.SUPABASE_ANON_KEY,
+            "Authorization": "Bearer " + cfg.SUPABASE_ANON_KEY,
+            "Prefer": "return=minimal"
+          },
+          body: JSON.stringify({
+            name: d.name,
+            email: d.email,
+            company: d.company || null,
+            inquiry_type: d.inquiry || null,
+            message: d.message,
+            source_page: location.pathname,
+            user_agent: navigator.userAgent.slice(0, 300)
+          })
+        }).then(function (r) {
+          a.done();
+          if (!r.ok) throw new Error("supabase " + r.status);
+          return "supabase";
+        })
+      );
+    }
+
+    /* 2 — email it to you straight away */
+    if (w3key) {
+      var b = withTimeout(null, 12000);
+      jobs.push(
+        fetch("https://api.web3forms.com/submit", {
+          method: "POST",
+          signal: b.signal,
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify({
+            access_key: w3key,
+            subject: (d.inquiry ? d.inquiry + " enquiry" : "Website enquiry") + " from " + d.name,
+            from_name: "anubhavkhanna.com",
+            replyto: d.email,
+            name: d.name,
+            email: d.email,
+            company: d.company || "\u2014",
+            inquiry_type: d.inquiry || "\u2014",
+            message: d.message,
+            page: location.pathname
+          })
+        }).then(function (r) {
+          b.done();
+          if (!r.ok) throw new Error("web3forms " + r.status);
+          return "email";
+        })
+      );
+    }
+
+    Promise.allSettled(jobs).then(function (results) {
+      var ok = results.some(function (r) { return r.status === "fulfilled"; });
       if (btn) { btn.innerHTML = btnLabel; btn.disabled = false; }
-    })
-    .catch(function () {
-      clearTimeout(timeout);
-      // paused project, offline, blocked request — do not lose the lead
-      if (btn) { btn.innerHTML = btnLabel; btn.disabled = false; }
-      say("err", "Couldn't send that automatically \u2014 opening your email app instead.");
-      mailtoFallback(d);
+
+      if (ok) {
+        form.reset();
+        say("ok", "Thanks \u2014 your message is with me. I'll reply to " + d.email + " shortly.");
+      } else {
+        // both routes failed — never lose the lead
+        say("err", "Couldn't send that automatically \u2014 opening your email app instead.");
+        mailtoFallback(d);
+      }
     });
   });
 })();
