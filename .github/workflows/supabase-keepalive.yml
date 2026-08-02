@@ -1,0 +1,22 @@
+name: Keep Supabase awake
+
+on:
+  schedule:
+    - cron: "17 6 * * 1,4"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping the Data API
+        env:
+          SUPABASE_URL: "https://avsaehvdzgbmqsdsvvsa.supabase.co"
+          SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2c2FlaHZkemdibXFzZHN2dnNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MDI1OTksImV4cCI6MjA5NzE3ODU5OX0.iSJ78rpDVRJ4gcqtNqldS0fYhIMsdUb5rytf1mpXa54"
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            "$SUPABASE_URL/rest/v1/contact_messages?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+          echo "Supabase responded with HTTP $code"
+          if [ "$code" = "540" ]; then echo "::error::Project is paused"; exit 1; fi
