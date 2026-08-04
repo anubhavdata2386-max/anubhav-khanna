@@ -3,6 +3,9 @@
   Only list pages that are MEANT to be found in search.
   Do not add /campaigns/ or /campaign-case-studies/ here — both carry a noindex tag.
   Listing a noindexed page contradicts the page itself and does nothing useful.
+
+  When you add a policy item with its own page on this site, add it here too.
+  Substack items do not go here — they live on Substack.
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
@@ -10,5 +13,17 @@
     <lastmod>2026-08-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://anubhavkhanna.com/public-policy/</loc>
+    <lastmod>2026-08-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://anubhavkhanna.com/public-policy/governing-ai-in-commercial-gaming/</loc>
+    <lastmod>2026-08-04</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>
