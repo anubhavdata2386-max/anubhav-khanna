@@ -2,18 +2,15 @@
 #
 # Crawling is allowed everywhere ON PURPOSE. Read this before changing anything.
 #
-# Some pages are kept out of search results by a noindex meta tag inside the page
-# itself, not by this file:
-#
-#   /campaigns/                  noindex
-#   /campaign-case-studies/      noindex, and every sub-page under it
+# Some pages on this site are deliberately kept out of search results. That is
+# done by a noindex meta tag inside each of those pages, never by this file.
 #
 # A noindex tag only works if the crawler is ALLOWED TO READ the page. Blocking a
-# folder in this file stops crawlers ever seeing the tag, and the bare address can
-# then still be listed in search with no description — with no way to remove it.
+# folder here stops crawlers ever seeing the tag, and the bare address can then
+# still be listed in search with no description — with no way to remove it.
 #
-# So do NOT add Disallow lines for those folders. The noindex tags enforce it.
-# Conversely: removing a noindex tag from a page makes that page findable.
+# So do not add Disallow lines to keep a page out of results. Put a noindex tag
+# in the page instead. Conversely: removing a noindex tag makes a page findable.
 
 User-agent: *
 Allow: /
