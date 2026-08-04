@@ -1,1 +1,14 @@
-
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Only list pages that are MEANT to be found in search.
+  Do not add /campaigns/ or /campaign-case-studies/ here — both carry a noindex tag.
+  Listing a noindexed page contradicts the page itself and does nothing useful.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://anubhavkhanna.com/</loc>
+    <lastmod>2026-08-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>

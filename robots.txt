@@ -1,22 +1,37 @@
-# The private case studies must never be indexed. The noindex meta tag inside
-# those pages is what actually enforces that; this line is a second layer.
-User-agent: *
-Disallow: /campaign-case-studies/
+# anubhavkhanna.com
+#
+# Crawling is allowed everywhere ON PURPOSE. Read this before changing anything.
+#
+# Some pages are kept out of search results by a noindex meta tag inside the page
+# itself, not by this file:
+#
+#   /campaigns/                  noindex
+#   /campaign-case-studies/      noindex, and every sub-page under it
+#
+# A noindex tag only works if the crawler is ALLOWED TO READ the page. Blocking a
+# folder in this file stops crawlers ever seeing the tag, and the bare address can
+# then still be listed in search with no description — with no way to remove it.
+#
+# So do NOT add Disallow lines for those folders. The noindex tags enforce it.
+# Conversely: removing a noindex tag from a page makes that page findable.
 
-# Everything else: crawling is allowed so that crawlers can READ the noindex tag
-# that is currently on every page. Blocking them here would stop them seeing it.
-# To make the site findable later, remove the noindex meta tag from index.html
-# and campaigns/index.html — do NOT touch the Disallow line above.
+User-agent: *
 Allow: /
 
 # AI training crawlers that honour robots.txt
 User-agent: GPTBot
 Disallow: /
+
 User-agent: CCBot
 Disallow: /
+
 User-agent: Google-Extended
 Disallow: /
+
 User-agent: anthropic-ai
 Disallow: /
+
 User-agent: ClaudeBot
 Disallow: /
+
+Sitemap: https://anubhavkhanna.com/sitemap.xml
