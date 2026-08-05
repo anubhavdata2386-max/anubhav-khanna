@@ -1275,3 +1275,17 @@ article.tile .tile__foot { border-top-color: var(--border); }
 
 /* counting numbers must not reflow the card as digits change */
 .stat__num { font-variant-numeric: tabular-nums; }
+
+/* ============================================================
+   Long-form reading — policy pages
+   APPENDED BLOCK. Nothing above this line was modified.
+   New class names only, so campaign pages are unaffected.
+   ============================================================ */
+.read { max-width: 720px; }
+.read h1 { font-size: clamp(2.125rem, 5vw, 3rem); }
+
+.prose--read { gap: clamp(20px, 2.4vw, 26px); }
+.prose--read p {
+  font-size: clamp(1.0625rem, .62rem + .85vw, 1.25rem);
+  line-height: 1.75;
+}
